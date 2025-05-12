@@ -8,7 +8,8 @@ Tasks:
 •	Load latitude/longitude zone mapping CSV using Pandas.
 •	Merge if needed and save combined DataFrame to data/processed/ as full_trip_data.parquet.
 This step sets the foundation with scalable, distributed loading.
-________________________________________ Step 2: Data Cleaning & Preprocessing
+________________________________________ 
+Step 2: Data Cleaning & Preprocessing
 Notebook: 02_preprocessing.ipynb
  Script: src/preprocessing.py
 Tools: PySpark
