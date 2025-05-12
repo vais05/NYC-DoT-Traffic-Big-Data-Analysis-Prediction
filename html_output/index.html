@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NYC Traffic Analysis - Project Dashboard</title>
+    <style>
+        :root {
+            --primary-color: #1e3a8a;
+            --secondary-color: #3b82f6;
+            --accent-color: #f59e0b;
+            --text-color: #374151;
+            --background-color: #f9fafb;
+            --code-bg: #f3f4f6;
+            --border-color: #e5e7eb;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        
+        .project-description {
+            margin-top: 0.5rem;
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .dashboard-container {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+        }
+        
+        .dashboard-header {
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+        
+        .notebook-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .notebook-card {
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .notebook-card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .notebook-card h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+        
+        .notebook-card a {
+            text-decoration: none;
+            color: var(--primary-color);
+        }
+        
+        .notebook-card a:hover {
+            color: var(--secondary-color);
+        }
+        
+        .notebook-card p {
+            color: var(--text-color);
+            margin-bottom: 0;
+        }
+        
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: 3rem;
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        @media (max-width: 768px) {
+            header, main {
+                padding: 1rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .notebook-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div>
+                <h1>NYC Traffic Analysis</h1>
+                <div class="project-description">Analysis of NYC Yellow Taxi Trip Data using Machine Learning</div>
+            </div>
+        </div>
+    </header>
+    
+    <main>
+        <div class="dashboard-container">
+            <div class="dashboard-header">
+                <h2>Project Dashboard</h2>
+                <p>Welcome to the NYC Traffic Analysis project. Explore our analysis workflow through the notebooks below.</p>
+            </div>
+            
+            <div class="notebook-cards">
+                
+        <div class="notebook-card">
+            <h3><a href="01_data_ingestion.html">01 data ingestion</a></h3>
+            <p>Notebook for NYC Traffic Analysis</p>
+        </div>
+         
+        <div class="notebook-card">
+            <h3><a href="02_preprocessing.html">02 preprocessing</a></h3>
+            <p>Notebook for NYC Traffic Analysis</p>
+        </div>
+         
+        <div class="notebook-card">
+            <h3><a href="03_feature_engineering_pca.html">03 feature engineering pca</a></h3>
+            <p>Notebook for NYC Traffic Analysis</p>
+        </div>
+         
+        <div class="notebook-card">
+            <h3><a href="04_clustering_zones.html">04 clustering zones</a></h3>
+            <p>Notebook for NYC Traffic Analysis</p>
+        </div>
+         
+        <div class="notebook-card">
+            <h3><a href="05_time_series_prediction.html">05 time series prediction</a></h3>
+            <p>Notebook for NYC Traffic Analysis</p>
+        </div>
+         
+        <div class="notebook-card">
+            <h3><a href="06_map_visualization.html">06 map visualization</a></h3>
+            <p>Notebook for NYC Traffic Analysis</p>
+        </div>
+         
+        <div class="notebook-card">
+            <h3><a href="07_live_api_comparison.html">07 live api comparison</a></h3>
+            <p>Notebook for NYC Traffic Analysis</p>
+        </div>
+        
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="footer-content">
+            <p>NYC Traffic Analysis Project &copy; 2025</p>
+        </div>
+    </footer>
+</body>
+</html>

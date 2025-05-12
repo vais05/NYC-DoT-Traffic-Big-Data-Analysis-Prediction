@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NYC Traffic Analysis - 01 data ingestion</title>
+    <style>
+        :root {
+            --primary-color: #1e3a8a;
+            --secondary-color: #3b82f6;
+            --accent-color: #f59e0b;
+            --text-color: #374151;
+            --background-color: #f9fafb;
+            --code-bg: #f3f4f6;
+            --border-color: #e5e7eb;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        
+        .project-description {
+            margin-top: 0.5rem;
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        nav {
+            background-color: white;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            padding: 0.75rem 0;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-color);
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-links a:hover {
+            background-color: var(--code-bg);
+            color: var(--secondary-color);
+        }
+        
+        .nav-links a.active {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .notebook-container {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .notebook-header {
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+        
+        .notebook-description {
+            color: var(--text-color);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .cell {
+            margin-bottom: 2rem;
+            border-radius: 0.25rem;
+            overflow: hidden;
+        }
+        
+        .code-cell {
+            background-color: var(--code-bg);
+            border-left: 4px solid var(--secondary-color);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            white-space: pre-wrap;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+        
+        .markdown-cell {
+            background-color: white;
+            padding: 0.5rem 1rem;
+            border-left: 4px solid var(--accent-color);
+        }
+        
+        .output-cell {
+            background-color: white;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.25rem;
+            margin-top: 0.5rem;
+            overflow-x: auto;
+        }
+        
+        .output-cell img {
+            max-width: 100%;
+            height: auto;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+        
+        .output-text {
+            white-space: pre-wrap;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+        
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 0.5rem;
+            text-align: left;
+        }
+        
+        th {
+            background-color: var(--code-bg);
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: 3rem;
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        @media (max-width: 768px) {
+            header, main {
+                padding: 1rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .nav-links {
+                overflow-x: auto;
+            }
+        }
+        
+        /* Specialized styling for markdown */
+        .markdown-cell h1, .markdown-cell h2, .markdown-cell h3, 
+        .markdown-cell h4, .markdown-cell h5, .markdown-cell h6 {
+            color: var(--primary-color);
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .markdown-cell h1 { font-size: 1.8rem; }
+        .markdown-cell h2 { font-size: 1.5rem; }
+        .markdown-cell h3 { font-size: 1.3rem; }
+        
+        .markdown-cell p {
+            margin-bottom: 1rem;
+        }
+        
+        .markdown-cell ul, .markdown-cell ol {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+        }
+        
+        .markdown-cell a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+        
+        .markdown-cell a:hover {
+            text-decoration: underline;
+        }
+        
+        .markdown-cell code {
+            background-color: var(--code-bg);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .markdown-cell pre {
+            background-color: var(--code-bg);
+            padding: 1rem;
+            border-radius: 0.25rem;
+            overflow-x: auto;
+            margin-bottom: 1rem;
+        }
+        
+        .markdown-cell pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        
+        .markdown-cell blockquote {
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 1rem;
+            margin-left: 0;
+            color: #4b5563;
+        }
+        
+        .error {
+            color: #ef4444;
+            background-color: #fee2e2;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            border-left: 4px solid #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div>
+                <h1>NYC Traffic Analysis</h1>
+                <div class="project-description">Analysis of NYC Yellow Taxi Trip Data using Machine Learning</div>
+            </div>
+        </div>
+    </header>
+    
+    <nav>
+        <div class="nav-container">
+            <div class="nav-links">
+                <a href="01_data_ingestion.html" id="nav-01" class=" active">01 data ingestion</a> <a href="02_preprocessing.html" id="nav-02" class="">02 preprocessing</a> <a href="03_feature_engineering_pca.html" id="nav-03" class="">03 feature engineering pca</a> <a href="04_clustering_zones.html" id="nav-04" class="">04 clustering zones</a> <a href="05_time_series_prediction.html" id="nav-05" class="">05 time series prediction</a> <a href="06_map_visualization.html" id="nav-06" class="">06 map visualization</a> <a href="07_live_api_comparison.html" id="nav-07" class="">07 live api comparison</a>
+            </div>
+        </div>
+    </nav>
+    
+    <main>
+        <div class="notebook-container">
+            <div class="notebook-header">
+                <h2>01 data ingestion</h2>
+                <div class="notebook-description">Notebook for NYC Traffic Analysis</div>
+            </div>
+            
+            
+                <div class="cell">
+                    <div class="code-cell">
+                        <pre><code>import sys
+
+import os
+
+
+
+# Add the root project directory to the Python path
+
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))
+
+
+
+from src.ingestion import run_monthly_ingestion
+
+
+
+# Run ingestion and save Parquet + split CSV
+
+run_monthly_ingestion()
+
+
+</code></pre>
+                    </div>
+                    <div class="output-cell">✅ Spark session initialized successfully.
+
+📁 Processing file 1/12: yellow_tripdata_2024-01.parquet
+📦 Loaded 2964624 raw rows from yellow_tripdata_2024-01.parquet
+🧪 Sample rows for month_4-01:
++--------------------+----------------------------+---------------------+
+|tpep_pickup_datetime|pickup_zone                 |dropoff_zone         |
++--------------------+----------------------------+---------------------+
+|2024-01-01 00:57:55 |Penn Station/Madison Sq West|East Village         |
+|2024-01-01 00:03:00 |Lenox Hill East             |Upper East Side North|
+|2024-01-01 00:17:06 |Upper East Side North       |East Village         |
++--------------------+----------------------------+---------------------+
+only showing top 3 rows
+
+✅ Saved cleaned Parquet to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\month_4-01.parquet
+🔄 Saving 2754465 rows in ~3 CSV chunks for month_4-01...
+📝 Saved chunk 1 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-01_trip_data_part_1.csv
+📝 Saved chunk 2 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-01_trip_data_part_2.csv
+📝 Saved chunk 3 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-01_trip_data_part_3.csv
+
+📁 Processing file 2/12: yellow_tripdata_2024-02.parquet
+📦 Loaded 3007526 raw rows from yellow_tripdata_2024-02.parquet
+🧪 Sample rows for month_4-02:
++--------------------+------------+------------------------+
+|tpep_pickup_datetime|pickup_zone |dropoff_zone            |
++--------------------+------------+------------------------+
+|2024-02-01 00:04:45 |East Chelsea|Upper East Side North   |
+|2024-02-01 00:56:31 |Clinton East|Washington Heights North|
+|2024-02-01 00:07:50 |JFK Airport |World Trade Center      |
++--------------------+------------+------------------------+
+only showing top 3 rows
+
+✅ Saved cleaned Parquet to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\month_4-02.parquet
+🔄 Saving 2752623 rows in ~3 CSV chunks for month_4-02...
+📝 Saved chunk 1 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-02_trip_data_part_1.csv
+📝 Saved chunk 2 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-02_trip_data_part_2.csv
+📝 Saved chunk 3 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-02_trip_data_part_3.csv
+
+📁 Processing file 3/12: yellow_tripdata_2024-03.parquet
+📦 Loaded 3582628 raw rows from yellow_tripdata_2024-03.parquet
+🧪 Sample rows for month_4-03:
++--------------------+---------------------+---------------------+
+|tpep_pickup_datetime|pickup_zone          |dropoff_zone         |
++--------------------+---------------------+---------------------+
+|2024-03-01 00:18:51 |Lincoln Square East  |Upper West Side South|
+|2024-03-01 00:26:00 |Upper West Side North|Bloomingdale         |
+|2024-03-01 00:09:22 |Yorkville West       |East Harlem South    |
++--------------------+---------------------+---------------------+
+only showing top 3 rows
+
+✅ Saved cleaned Parquet to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\month_4-03.parquet
+🔄 Saving 3074878 rows in ~4 CSV chunks for month_4-03...
+📝 Saved chunk 1 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-03_trip_data_part_1.csv
+📝 Saved chunk 2 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-03_trip_data_part_2.csv
+📝 Saved chunk 3 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-03_trip_data_part_3.csv
+📝 Saved chunk 4 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-03_trip_data_part_4.csv
+
+📁 Processing file 4/12: yellow_tripdata_2024-04.parquet
+📦 Loaded 3514289 raw rows from yellow_tripdata_2024-04.parquet
+🧪 Sample rows for month_4-04:
++--------------------+----------------------------+---------------------+
+|tpep_pickup_datetime|pickup_zone                 |dropoff_zone         |
++--------------------+----------------------------+---------------------+
+|2024-04-01 00:02:40 |Midtown Center              |Astoria              |
+|2024-04-01 00:41:12 |NV                          |NV                   |
+|2024-04-01 00:48:42 |Penn Station/Madison Sq West|Upper East Side North|
++--------------------+----------------------------+---------------------+
+only showing top 3 rows
+
+✅ Saved cleaned Parquet to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\month_4-04.parquet
+🔄 Saving 3025749 rows in ~4 CSV chunks for month_4-04...
+📝 Saved chunk 1 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-04_trip_data_part_1.csv
+📝 Saved chunk 2 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-04_trip_data_part_2.csv
+📝 Saved chunk 3 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-04_trip_data_part_3.csv
+📝 Saved chunk 4 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-04_trip_data_part_4.csv
+
+📁 Processing file 5/12: yellow_tripdata_2024-05.parquet
+📦 Loaded 3723833 raw rows from yellow_tripdata_2024-05.parquet
+🧪 Sample rows for month_4-05:
++--------------------+-----------------+------------------------------+
+|tpep_pickup_datetime|pickup_zone      |dropoff_zone                  |
++--------------------+-----------------+------------------------------+
+|2024-05-01 00:59:15 |LaGuardia Airport|Long Island City/Hunters Point|
+|2024-04-30 23:58:26 |LaGuardia Airport|West Village                  |
+|2024-05-01 00:57:17 |LaGuardia Airport|Murray Hill                   |
++--------------------+-----------------+------------------------------+
+only showing top 3 rows
+
+✅ Saved cleaned Parquet to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\month_4-05.parquet
+🔄 Saving 3230606 rows in ~4 CSV chunks for month_4-05...
+📝 Saved chunk 1 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-05_trip_data_part_1.csv
+📝 Saved chunk 2 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-05_trip_data_part_2.csv
+📝 Saved chunk 3 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-05_trip_data_part_3.csv
+📝 Saved chunk 4 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-05_trip_data_part_4.csv
+
+📁 Processing file 6/12: yellow_tripdata_2024-06.parquet
+📦 Loaded 3539193 raw rows from yellow_tripdata_2024-06.parquet
+🧪 Sample rows for month_4-06:
++--------------------+-------------------+--------------+
+|tpep_pickup_datetime|pickup_zone        |dropoff_zone  |
++--------------------+-------------------+--------------+
+|2024-06-01 00:03:46 |LaGuardia Airport  |Red Hook      |
+|2024-06-01 00:55:22 |LaGuardia Airport  |Astoria       |
+|2024-06-01 00:23:53 |Morningside Heights|Central Harlem|
++--------------------+-------------------+--------------+
+only showing top 3 rows
+
+✅ Saved cleaned Parquet to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\month_4-06.parquet
+🔄 Saving 3040798 rows in ~4 CSV chunks for month_4-06...
+📝 Saved chunk 1 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-06_trip_data_part_1.csv
+📝 Saved chunk 2 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-06_trip_data_part_2.csv
+📝 Saved chunk 3 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-06_trip_data_part_3.csv
+📝 Saved chunk 4 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-06_trip_data_part_4.csv
+
+📁 Processing file 7/12: yellow_tripdata_2024-07.parquet
+📦 Loaded 3076903 raw rows from yellow_tripdata_2024-07.parquet
+🧪 Sample rows for month_4-07:
++--------------------+---------------------+------------------------------+
+|tpep_pickup_datetime|pickup_zone          |dropoff_zone                  |
++--------------------+---------------------+------------------------------+
+|2024-07-01 00:34:56 |Lenox Hill East      |East Village                  |
+|2024-06-30 23:48:58 |JFK Airport          |Greenwich Village North       |
+|2024-07-01 00:23:18 |Upper East Side South|Long Island City/Hunters Point|
++--------------------+---------------------+------------------------------+
+only showing top 3 rows
+
+✅ Saved cleaned Parquet to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\month_4-07.parquet
+🔄 Saving 2710909 rows in ~3 CSV chunks for month_4-07...
+📝 Saved chunk 1 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-07_trip_data_part_1.csv
+📝 Saved chunk 2 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-07_trip_data_part_2.csv
+📝 Saved chunk 3 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-07_trip_data_part_3.csv
+
+📁 Processing file 8/12: yellow_tripdata_2024-08.parquet
+📦 Loaded 2979183 raw rows from yellow_tripdata_2024-08.parquet
+🧪 Sample rows for month_4-08:
++--------------------+-----------------+------------------------+
+|tpep_pickup_datetime|pickup_zone      |dropoff_zone            |
++--------------------+-----------------+------------------------+
+|2024-08-01 00:21:00 |LaGuardia Airport|East Williamsburg       |
+|2024-08-01 00:20:01 |LaGuardia Airport|Upper West Side South   |
+|2024-08-01 00:17:52 |LaGuardia Airport|Financial District South|
++--------------------+-----------------+------------------------+
+only showing top 3 rows
+
+✅ Saved cleaned Parquet to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\month_4-08.parquet
+🔄 Saving 2628753 rows in ~3 CSV chunks for month_4-08...
+📝 Saved chunk 1 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-08_trip_data_part_1.csv
+📝 Saved chunk 2 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-08_trip_data_part_2.csv
+📝 Saved chunk 3 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-08_trip_data_part_3.csv
+
+📁 Processing file 9/12: yellow_tripdata_2024-09.parquet
+📦 Loaded 3633030 raw rows from yellow_tripdata_2024-09.parquet
+🧪 Sample rows for month_4-09:
++--------------------+---------------------+---------------+
+|tpep_pickup_datetime|pickup_zone          |dropoff_zone   |
++--------------------+---------------------+---------------+
+|2024-09-01 00:05:51 |LaGuardia Airport    |Clinton East   |
+|2024-09-01 00:59:35 |Lenox Hill East      |Lenox Hill West|
+|2024-09-01 00:25:00 |Upper West Side North|Manhattanville |
++--------------------+---------------------+---------------+
+only showing top 3 rows
+
+✅ Saved cleaned Parquet to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\month_4-09.parquet
+🔄 Saving 3053206 rows in ~4 CSV chunks for month_4-09...
+📝 Saved chunk 1 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-09_trip_data_part_1.csv
+📝 Saved chunk 2 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-09_trip_data_part_2.csv
+📝 Saved chunk 3 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-09_trip_data_part_3.csv
+📝 Saved chunk 4 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-09_trip_data_part_4.csv
+
+📁 Processing file 10/12: yellow_tripdata_2024-10.parquet
+📦 Loaded 3833771 raw rows from yellow_tripdata_2024-10.parquet
+🧪 Sample rows for month_4-10:
++--------------------+-------------------+-------------------------+
+|tpep_pickup_datetime|pickup_zone        |dropoff_zone             |
++--------------------+-------------------+-------------------------+
+|2024-10-01 00:30:44 |Midtown East       |West Chelsea/Hudson Yards|
+|2024-10-01 00:12:20 |Clinton East       |Upper East Side North    |
+|2024-10-01 00:04:46 |Lincoln Square East|Bloomingdale             |
++--------------------+-------------------+-------------------------+
+only showing top 3 rows
+
+✅ Saved cleaned Parquet to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\month_4-10.parquet
+🔄 Saving 3336488 rows in ~4 CSV chunks for month_4-10...
+📝 Saved chunk 1 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-10_trip_data_part_1.csv
+📝 Saved chunk 2 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-10_trip_data_part_2.csv
+📝 Saved chunk 3 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-10_trip_data_part_3.csv
+📝 Saved chunk 4 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-10_trip_data_part_4.csv
+
+📁 Processing file 11/12: yellow_tripdata_2024-11.parquet
+📦 Loaded 3646369 raw rows from yellow_tripdata_2024-11.parquet
+🧪 Sample rows for month_4-11:
++--------------------+----------------------------+--------------+
+|tpep_pickup_datetime|pickup_zone                 |dropoff_zone  |
++--------------------+----------------------------+--------------+
+|2024-11-01 00:46:24 |Upper West Side South       |Yorkville West|
+|2024-11-01 00:37:36 |Springfield Gardens South   |NA            |
+|2024-11-01 00:12:55 |Penn Station/Madison Sq West|Gramercy      |
++--------------------+----------------------------+--------------+
+only showing top 3 rows
+
+✅ Saved cleaned Parquet to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\month_4-11.parquet
+🔄 Saving 3174829 rows in ~4 CSV chunks for month_4-11...
+📝 Saved chunk 1 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-11_trip_data_part_1.csv
+📝 Saved chunk 2 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-11_trip_data_part_2.csv
+📝 Saved chunk 3 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-11_trip_data_part_3.csv
+📝 Saved chunk 4 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-11_trip_data_part_4.csv
+
+📁 Processing file 12/12: yellow_tripdata_2024-12.parquet
+📦 Loaded 3668371 raw rows from yellow_tripdata_2024-12.parquet
+🧪 Sample rows for month_4-12:
++--------------------+-----------------------------+---------------------+
+|tpep_pickup_datetime|pickup_zone                  |dropoff_zone         |
++--------------------+-----------------------------+---------------------+
+|2024-12-01 00:12:27 |LaGuardia Airport            |Brooklyn Heights     |
+|2024-11-30 23:56:04 |Meatpacking/West Village West|Central Harlem North |
+|2024-12-01 00:50:35 |JFK Airport                  |Upper East Side North|
++--------------------+-----------------------------+---------------------+
+only showing top 3 rows
+
+✅ Saved cleaned Parquet to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\month_4-12.parquet
+🔄 Saving 3229531 rows in ~4 CSV chunks for month_4-12...
+📝 Saved chunk 1 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-12_trip_data_part_1.csv
+📝 Saved chunk 2 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-12_trip_data_part_2.csv
+📝 Saved chunk 3 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-12_trip_data_part_3.csv
+📝 Saved chunk 4 to: c:\Users\VaishnaviM\Desktop\BIG_DATA\data\processed\full_trip_data.parquet\csv_chunks\month_4-12_trip_data_part_4.csv
+
+🛑 Spark session stopped.
+</div>
+                </div>
+                
+        </div>
+    </main>
+    
+    <footer>
+        <div class="footer-content">
+            <p>NYC Traffic Analysis Project &copy; 2025</p>
+        </div>
+    </footer>
+</body>
+</html>
