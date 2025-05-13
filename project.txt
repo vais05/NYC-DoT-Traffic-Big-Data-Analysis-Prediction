@@ -1,0 +1,360 @@
+🔧 1. Data Ingestion and Storage
+Tools: PySpark, HDFS/S3, Pandas (for CSV)
+
+Load the 12 NYC Yellow Taxi Parquet files into Spark DataFrames for distributed processing.
+
+Also load your latitude/longitude CSV to map locations to NYC zones.
+
+Save ingested data to data/processed/.
+
+📌 Notebook: 01_data_ingestion.ipynb
+📁 Script: src/ingestion.py
+
+🧹 2. Data Cleaning & Preprocessing
+Tasks:
+
+Drop nulls, filter invalid coordinates.
+
+Extract time features: hour, day, weekday, month.
+
+Use Haversine formula to compute trip distance.
+
+Remove outliers based on duration, speed.
+
+📌 Notebook: 02_preprocessing.ipynb
+📁 Script: src/preprocessing.py
+
+🧠 3. Feature Engineering & PCA
+Tasks:
+
+Create features: pickup/dropoff lat/lon, time of day, trip duration, average speed, etc.
+
+Normalize features and apply PCA to reduce dimensionality (retain 95% variance).
+
+📌 Notebook: 03_feature_engineering_pca.ipynb
+📁 Script: src/features.py
+
+📍 4. Clustering (Red/Yellow/Green Zones)
+Algorithms: KMeans or DBSCAN
+
+Cluster locations using pickup/dropoff points to identify high-density zones.
+
+Label zones based on traffic speed:
+
+Red: Congested (low avg. speed)
+
+Yellow: Moderate
+
+Green: Free-flowing
+
+📌 Notebook: 04_clustering_zones.ipynb
+📁 Script: src/clustering.py
+
+⏳ 5. Time-Series Prediction (Traffic Speed Over Time)
+Algorithms:
+
+LSTM (deep learning)
+
+XGBoost (gradient boosting)
+
+SARIMA (seasonal ARIMA)
+
+Features:
+
+Zone ID, hour, weekday, previous speeds
+
+Target:
+
+Predict average traffic speed for future hours
+
+📌 Notebook: 05_time_series_prediction.ipynb
+📁 Script: src/prediction.py
+
+5. Time-Series Prediction (Traffic Speed Over Time)
+5.1 Overview
+Our enhanced methodology for predicting traffic speed over time combines advanced feature engineering with ensemble modeling techniques to achieve higher accuracy across diverse traffic conditions. The approach focuses on capturing temporal patterns at multiple scales while incorporating contextual information.
+5.2 Algorithms
+We implement a multi-model approach with the following algorithms:
+
+XGBoost (Primary Model)
+
+Gradient boosting framework optimized for speed and performance
+Handles non-linear relationships and interactions between features
+Excellent for capturing complex temporal patterns
+Fast training and inference times
+
+
+LSTM Neural Networks (Deep Learning Component)
+
+Long Short-Term Memory architecture specialized for sequence data
+Captures long-term dependencies in time series data
+Effective at learning complex seasonal patterns
+Maintains state information across time steps
+
+
+Prophet (Seasonal Decomposition)
+
+Facebook's time series forecasting tool
+Handles multiple seasonality patterns (daily, weekly, monthly)
+Robust to missing data and outliers
+Automatically detects changepoints in time series
+
+
+Model Ensemble
+
+Weighted averaging of predictions from multiple models
+Reduces variance and improves robustness
+Adjusts weights based on recent performance metrics
+
+
+
+5.3 Feature Engineering
+5.3.1 Temporal Features
+
+Basic Time Elements
+
+Hour of day, day of week, month, day of year
+Cyclical encoding for time features (sin/cos transformations)
+One-hot encoded weekdays for discrete pattern recognition
+
+
+Lag Features
+
+Short-term lags (1-hour, 2-hour, 3-hour, 6-hour)
+Daily patterns (12-hour, 24-hour)
+Weekly patterns (168-hour lag)
+Custom lags based on autocorrelation analysis
+
+
+Rolling Window Statistics
+
+Moving averages (3, 6, 12, 24-hour windows)
+Moving standard deviations
+Exponentially weighted moving averages
+Min/max speeds within windows
+
+
+Trend Indicators
+
+Speed changes over recent periods
+Acceleration/deceleration metrics
+Anomaly detection for unusual patterns
+
+
+
+5.3.2 Contextual Features
+
+Calendar Features
+
+Holidays and events
+Weekend indicators
+Seasonal indicators (winter, spring, summer, fall)
+School session indicators
+
+
+
+5.3.3 Spatial Context
+
+Zone Clustering
+
+Similar traffic pattern zones grouped together
+Zone density metrics
+Zone proximity to key attractions/destinations
+
+
+Neighboring Zone Information
+
+Speed patterns in adjacent zones
+Traffic flow relationships between connected zones
+
+
+
+5.3.4 External Data Integration
+
+Weather Data
+
+Precipitation indicators
+Temperature ranges
+Severe weather alerts
+
+
+Event Data
+
+Major sporting events
+Concerts and festivals
+Conventions and conferences
+
+
+
+5.4 Model Training Process
+5.4.1 Cross-Validation Strategy
+
+Time Series Split
+
+Multiple train-test splits that respect temporal order
+Forward-chaining validation (expanding window)
+Out-of-time validation on most recent data
+
+
+
+5.4.2 Hyperparameter Optimization
+
+Bayesian Optimization
+
+Efficient search of hyperparameter space
+Focuses on promising regions of parameter space
+Optimizes for RMSE on validation data
+
+
+Automated ML Pipeline
+
+Feature selection based on importance scores
+Hyperparameter tuning across multiple models
+Early stopping to prevent overfitting
+
+
+
+5.4.3 Model Evaluation
+
+Multiple Metrics
+
+Root Mean Squared Error (RMSE)
+Mean Absolute Error (MAE)
+Mean Absolute Percentage Error (MAPE)
+R-squared (R²)
+
+
+Visual Diagnostics
+
+Actual vs. Predicted plots
+Residual analysis
+Feature importance visualization
+Error distribution analysis
+
+
+
+5.5 Prediction Pipeline
+5.5.1 Real-time Feature Generation
+
+Feature Pipeline
+
+Automated feature generation for new timepoints
+Historical data retrieval and aggregation
+Feature normalization and transformation
+
+
+
+5.5.2 Ensemble Prediction
+
+Model Averaging
+
+Weighted predictions from multiple models
+Dynamic weight adjustment based on recent performance
+Confidence intervals for predictions
+
+
+
+5.5.3 Model Monitoring
+
+Drift Detection
+
+Monitoring input feature distributions
+Performance degradation alerts
+Automated retraining triggers
+
+
+Version Control
+
+Model versioning with metadata
+Performance tracking across versions
+A/B testing of model versions
+
+
+
+5.6 Targets
+
+Primary: Average traffic speed for future hours (1-hour to 24-hour forecasts)
+Secondary:
+
+Prediction uncertainty (confidence intervals)
+Traffic speed anomaly detection
+Peak/off-peak transition timing
+
+
+
+5.7 Expected Outcomes
+
+15-20% improvement in prediction accuracy over baseline models
+Robust performance across different time periods and traffic conditions
+Early detection of unusual traffic patterns
+Actionable insights for traffic management and routing optimization
+
+
+🗺️ 6. Visualization on NYC Map
+Tools: Folium, Kepler.gl, Plotly, GeoJSON
+
+Map the clustered zones (Red/Yellow/Green) onto New York City map
+
+Add time slider to animate traffic over time
+
+Export interactive HTML maps
+
+API Keys: Use mapbox_config.yaml if using Kepler or Mapbox.
+
+📌 Notebook: 06_map_visualization.ipynb
+📁 Script: src/visualization.py
+
+🌐 7. Live Traffic Comparison
+APIs:
+
+Google Maps Traffic API (paid)
+
+TomTom or HERE API (alternatives)
+
+Process:
+
+Get live speed between pairs of lat/lon from the API
+
+Compare it with your predicted speed
+
+Calculate accuracy / deviation for evaluation
+
+📁 Script: src/live_api_comparison.py
+
+📊 8. Dashboard (Optional)
+Tools: Streamlit or Dash
+
+Interactive dashboard to show zone prediction, current traffic, and comparison
+
+Include filters: date, time, zone, etc.
+
+📁 Script: dashboard/app.py
+
+✅ Best Practices
+Use Spark for scalability (especially in steps 1–3)
+
+Train models offline and batch predict
+
+Schedule regular updates via cron or Airflow
+
+Monitor prediction drift using live data
+
+📈 Algorithms Summary
+Task	Algorithm	Justification
+Clustering	KMeans / DBSCAN	Unsupervised zone formation
+Feature Reduction	PCA	Dimensionality reduction
+Traffic Prediction	LSTM / XGBoost / SARIMA	Time-series forecasting
+Map Visualization	Folium / Kepler.gl	Geospatial rendering
+Live Data Comparison	Google Maps API	Real-time speed & congestion data
+
+🚦 Final Output
+Map of NYC with zones marked as Red, Yellow, Green
+
+CSV with predicted traffic speeds
+
+HTML interactive maps
+
+Dashboard for visualization
+
+Evaluation using live API data
+
